@@ -9,16 +9,22 @@ contract CounterTest is Test {
 
     function setUp() public {
         counter = new Counter();
-        counter.setNumber(0);
     }
 
-    function test_Increment() public {
-        counter.increment();
-        assertEq(counter.number(), 1);
+    function test_ReturnsColor() public view {
+        bytes32 example = 0x0000000000000001018000ffd8da6bf26964af9d7eed9e03e53415d37aa96045;
+        uint24 color = counter.getColor(example);
+        assertEq(color, 0x8000FF);
     }
 
-    function testFuzz_SetNumber(uint256 x) public {
-        counter.setNumber(x);
-        assertEq(counter.number(), x);
+    function testFuzz_ReturnsColor(bytes32 randomData) public view {
+        uint24 expectedColor;
+        assembly {
+            let shiftedData := shr(160, randomData)
+            expectedColor := and(shiftedData, 0xffffff)
+        }
+
+        uint24 color = counter.getColor(randomData);
+        assertEq(color, expectedColor, "Color mismatch found during fuzz testing");
     }
 }
